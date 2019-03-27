@@ -1,0 +1,44 @@
+package com.test.lastfm.common;
+
+import android.support.annotation.NonNull;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+
+public class PaginationListener extends RecyclerView.OnScrollListener {
+    private final LinearLayoutManager linearLayoutManager;
+    private final PaginationStateListener listener;
+
+    public PaginationListener(@NonNull LinearLayoutManager linearLayoutManager,
+                              @NonNull PaginationStateListener paginationStateListener) {
+        this.linearLayoutManager = linearLayoutManager;
+        this.listener = paginationStateListener;
+    }
+
+    @Override
+    public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+        super.onScrolled(recyclerView, dx, dy);
+        int visibleItemCount = linearLayoutManager.getChildCount();
+        int totalCount = linearLayoutManager.getItemCount();
+        int firstVisiblePosition = linearLayoutManager.findFirstVisibleItemPosition();
+        if (!listener.isLastPage() && !listener.isLoading()) {
+            if ((visibleItemCount + firstVisiblePosition) >= totalCount &&
+                    firstVisiblePosition >= 0 &&
+                    totalCount >= Constants.RESULTS_PER_PAGE) {
+                try {
+                    listener.loadMoreItems();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public interface PaginationStateListener {
+
+        boolean isLoading();
+
+        boolean isLastPage();
+
+        void loadMoreItems() throws Exception;
+    }
+}
